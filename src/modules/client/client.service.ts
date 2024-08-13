@@ -141,8 +141,30 @@ export class ClientService {
             }
         }
 
-        
+        const updateClient = await this.clientRepository.save(client);
 
-        return this.clientRepository.save(client);
+        if(deleteAddress){
+            await this.addressRepository.delete({id: clientExists.address.id});
+        }
+
+        return updateClient; 
+    }
+
+    async deleteClient(id: number){
+
+        const clientExists = await this.getClientById(id);
+
+        if(!clientExists){
+            throw new ConflictException('El cliente con el id '+ id +' no existe');
+        }
+
+        const rows = await this.clientRepository.delete({ id })
+
+        if(rows.affected == 1){
+            await this.addressRepository.delete({ id: clientExists.address.id })
+            return true
+        }
+
+        return false;
     }
 }
